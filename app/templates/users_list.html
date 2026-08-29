@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block page_title %}{{ t('users_title') }}{% endblock %}
+{% block content %}
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+    <span class="mono" style="color:var(--text-muted); font-size:13px;">{{ users|length }} {{ t('users_count') }}</span>
+    <a href="/users/new" class="btn btn-primary">{{ t('add_user') }}</a>
+  </div>
+  <table>
+    <thead><tr><th>{{ t('col_username') }}</th><th>{{ t('col_role') }}</th><th>{{ t('col_actions') }}</th></tr></thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td class="mono">{{ u.username }}</td>
+        <td><span class="role-pill {% if u.role.value == 'admin' %}admin{% endif %}">{{ u.role.value }}</span></td>
+        <td>
+          {% if u.id != user.id %}
+          <form method="post" action="/users/{{ u.id }}/delete" style="display:inline;"
+                onsubmit="return confirm('{{ t('confirm_delete_user', username=u.username) }}');">
+            <button type="submit" class="btn btn-danger" style="font-size:12px;">{{ t('delete') }}</button>
+          </form>
+          {% else %}
+          <span class="mono" style="font-size:12px; color:var(--text-muted);">{{ t('self_marker') }}</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

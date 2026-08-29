@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block page_title %}{{ t('nodes_title') }}{% endblock %}
+{% block content %}
+
+{% if new_credentials %}
+<div class="card" style="border-color: var(--warn);">
+  <p class="auth-eyebrow" style="color: var(--warn);">{{ t('credentials_reveal_title') }}</p>
+  <p>{{ t('credentials_reveal_body', label=new_credentials.label) }}</p>
+  <p class="mono">PSK: {{ new_credentials.psk }}</p>
+  <p class="mono">PPP Password: {{ new_credentials.ppp_password }}</p>
+</div>
+{% endif %}
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+    <span class="mono" style="color:var(--text-muted); font-size:13px;">{{ nodes|length }} {{ t('nodes_count') }}</span>
+    {% if user.role.value == 'admin' %}
+    <a href="/nodes/new" class="btn btn-primary">{{ t('add_node') }}</a>
+    {% endif %}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>{{ t('col_label') }}</th>
+        <th>{{ t('col_router_ip') }}</th>
+        <th>{{ t('col_tunnel_ip') }}</th>
+        <th>{{ t('col_subnet') }}</th>
+        {% if user.role.value == 'admin' %}<th>{{ t('col_actions') }}</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for node in nodes %}
+      <tr>
+        <td class="mono">{{ node.label }}</td>
+        <td class="mono">{{ node.public_ip or '-' }}</td>
+        <td class="mono" style="color:var(--text-muted);">{{ node.tunnel_ip }}</td>
+        <td class="mono">{{ node.subnet_cidr or '-' }}</td>
+        {% if user.role.value == 'admin' %}
+        <td>
+          <a href="/nodes/{{ node.id }}/edit" class="btn btn-ghost" style="font-size:12px; margin-left:4px;">{{ t('edit') }}</a>
+          <a href="/nodes/{{ node.id }}/setup-script" class="btn btn-ghost" style="font-size:12px; margin-left:4px; color:var(--accent);">{{ t('get_setup_script') }}</a>
+          <form method="post" action="/nodes/{{ node.id }}/delete" style="display:inline;"
+                onsubmit="return confirm('{{ t('confirm_delete_node', label=node.label) }}');">
+            <button type="submit" class="btn btn-danger" style="font-size:12px;">{{ t('delete') }}</button>
+          </form>
+        </td>
+        {% endif %}
+      </tr>
+      {% else %}
+      <tr><td colspan="{% if user.role.value == 'admin' %}5{% else %}4{% endif %}" style="color:var(--text-muted);">{{ t('no_nodes_yet') }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

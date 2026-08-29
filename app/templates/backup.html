@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block page_title %}{{ t('backup_title') }}{% endblock %}
+{% block content %}
+
+{% if message %}
+<div class="card" style="border-color: var(--accent);"><p style="margin:0;">{{ message }}</p></div>
+{% endif %}
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h3 style="margin:0 0 4px;">{{ t('auto_backup_title') }}</h3>
+      <span class="mono" style="font-size:13px; color:var(--text-muted);">
+        {{ t('status_label') }}: {% if cron_enabled %}<span style="color:var(--accent);">{{ t('status_enabled') }}</span>{% else %}<span style="color:var(--text-muted);">{{ t('status_disabled') }}</span>{% endif %}
+      </span>
+    </div>
+    <div>
+      {% if cron_enabled %}
+      <form method="post" action="/backup/cron/disable"><button class="btn btn-ghost" type="submit">{{ t('disable') }}</button></form>
+      {% else %}
+      <form method="post" action="/backup/cron/enable"><button class="btn btn-primary" type="submit">{{ t('enable_nightly') }}</button></form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+    <h3 style="margin:0;">{{ t('saved_backups_title') }}</h3>
+    <form method="post" action="/backup/create">
+      <button type="submit" class="btn btn-primary">{{ t('backup_now') }}</button>
+    </form>
+  </div>
+
+  <table>
+    <thead><tr><th>{{ t('col_filename') }}</th><th>{{ t('col_size') }}</th><th>{{ t('col_date') }}</th><th>{{ t('col_actions') }}</th></tr></thead>
+    <tbody>
+      {% for b in backups %}
+      <tr>
+        <td class="mono">{{ b.filename }}</td>
+        <td class="mono">{{ b.size_kb }} KB</td>
+        <td class="mono">{{ b.modified }}</td>
+        <td>
+          <form method="post" action="/backup/restore" style="display:inline;"
+                onsubmit="return confirm('{{ t('confirm_restore') }}');">
+            <input type="hidden" name="filename" value="{{ b.filename }}">
+            <button type="submit" class="btn btn-ghost" style="font-size:12px;">{{ t('restore') }}</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" style="color:var(--text-muted);">{{ t('no_backups') }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

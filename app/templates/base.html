@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="{{ current_lang() }}" dir="{{ 'rtl' if current_lang() == 'fa' else 'ltr' }}">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}{{ t('brand') }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">{{ t('brand') }}</div>
+      <a class="nav-item {% if active == 'dashboard' %}active{% endif %}" href="/dashboard">{{ t('nav_dashboard') }}</a>
+      <a class="nav-item {% if active == 'nodes' %}active{% endif %}" href="/nodes">{{ t('nav_nodes') }}</a>
+      <a class="nav-item {% if active == 'connections' %}active{% endif %}" href="/connections">{{ t('nav_connections') }}</a>
+      {% if user and user.role.value == 'admin' %}
+      <a class="nav-item {% if active == 'users' %}active{% endif %}" href="/users">{{ t('nav_users') }}</a>
+      <a class="nav-item {% if active == 'backup' %}active{% endif %}" href="/backup">{{ t('nav_backup') }}</a>
+      <a class="nav-item {% if active == 'system' %}active{% endif %}" href="/system">{{ t('nav_system') }}</a>
+      <a class="nav-item {% if active == 'logs' %}active{% endif %}" href="/logs">{{ t('nav_logs') }}</a>
+      {% endif %}
+      <div class="lang-switch sidebar-lang-switch">
+        <a href="?lang=fa" class="{{ 'active' if current_lang() == 'fa' else '' }}">FA</a>
+        <span>/</span>
+        <a href="?lang=en" class="{{ 'active' if current_lang() == 'en' else '' }}">EN</a>
+      </div>
+    </aside>
+    <main class="main">
+      {% if show_ssl_warning() %}
+      <div class="ssl-warning" style="margin-bottom:16px;">{{ t('ssl_warning_banner') }}</div>
+      {% endif %}
+      <div class="topbar">
+        <h2 style="margin:0;">{% block page_title %}{% endblock %}</h2>
+        <div style="display:flex; align-items:center; gap:12px;">
+          {% if user %}
+          <span class="role-pill {% if user.role.value == 'admin' %}admin{% endif %}">{{ user.username }} · {{ user.role.value }}</span>
+          <form method="post" action="/logout" style="margin:0;">
+            <button type="submit" class="btn btn-ghost">{{ t('logout') }}</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>

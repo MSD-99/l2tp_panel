@@ -1,0 +1,4 @@
+README_local.md
+__pycache__/
+.env
+venv/

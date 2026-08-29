@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block page_title %}{{ t('setup_script_title') }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column;">
+  <h3 style="margin-top:0;">{{ t('setup_script_title') }}: {{ node.label }}</h3>
+
+  <div style="display: flex; gap: 24px; align-items: stretch;">
+    <!-- Setup side -->
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+      <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0; min-height: 170px;">
+        <p style="color: var(--warn); margin:0 0 12px 0; font-size: 13px;">
+          {{ t('setup_script_warning') }}
+        </p>
+        <div style="color: var(--text-muted); font-size: 13px; margin: 0; padding-right: 8px; line-height: 1.6;">
+          <div style="margin-bottom: 4px;">{{ t('setup_step_1') | safe }}</div>
+          <div style="margin-bottom: 4px;">{{ t('setup_step_2') | safe }}</div>
+          <div style="margin-bottom: 4px;">{{ t('setup_step_3') | safe }}</div>
+          <div>{{ t('setup_step_4') | safe }}</div>
+        </div>
+      </div>
+
+      <div style="position: relative; display: flex; flex-direction: column; height: 400px;">
+        <button id="copy-btn" class="btn btn-primary"
+                style="position:absolute; top:8px; right:8px; font-size:12px; z-index:2; padding: 6px 14px;"
+                onclick="copyScript('script-content', 'copy-btn')">
+          {{ t('copy_script') }}
+        </button>
+        <pre id="script-content" style="
+          background: #0a0e14; color: #c5cdd9; font-family: var(--font-mono); font-size: 12px;
+          line-height: 1.6; padding: 16px; border-radius: 8px; overflow-x: auto;
+          overflow-y: auto; direction: ltr; text-align: left;
+          white-space: pre; border: 1px solid var(--border); margin: 0; flex: 1;
+        ">{{ script }}</pre>
+      </div>
+    </div>
+
+    <!-- Uninstall side -->
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+      <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0; min-height: 170px;">
+        <p style="color: var(--danger); margin:0 0 12px 0; font-size: 13px;">
+          {{ t('uninstall_script_title') }}
+        </p>
+        <div style="color: var(--text-muted); font-size: 13px; margin: 0; padding-right: 8px; line-height: 1.6;">
+          <div style="margin-bottom: 4px;">{{ t('uninstall_step_1') | safe }}</div>
+          <div style="margin-bottom: 4px;">{{ t('uninstall_step_2') | safe }}</div>
+          <div style="margin-bottom: 4px;">{{ t('uninstall_step_3') | safe }}</div>
+          <div>{{ t('uninstall_step_4') | safe }}</div>
+        </div>
+      </div>
+
+      <div style="position: relative; display: flex; flex-direction: column; height: 400px;">
+        <button id="copy-uninstall-btn" class="btn btn-danger"
+                style="position:absolute; top:8px; right:8px; font-size:12px; z-index:2; padding: 6px 14px;"
+                onclick="copyScript('uninstall-script-content', 'copy-uninstall-btn')">
+          {{ t('copy_uninstall_script') }}
+        </button>
+        <pre id="uninstall-script-content" style="
+          background: #140a0a; color: #d9c5c5; font-family: var(--font-mono); font-size: 12px;
+          line-height: 1.6; padding: 16px; border-radius: 8px; overflow-x: auto;
+          overflow-y: auto; direction: ltr; text-align: left;
+          white-space: pre; border: 1px solid var(--danger); margin: 0; flex: 1;
+        ">{{ uninstall_script }}</pre>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 10px; margin-top: 24px;">
+    <a href="/nodes" class="btn btn-ghost">{{ t('back_to_nodes') }}</a>
+  </div>
+</div>
+
+<script>
+function copyScript(contentId, btnId) {
+  const text = document.getElementById(contentId).innerText;
+  
+  const onSuccess = () => {
+    const btn = document.getElementById(btnId);
+    const originalText = btn.innerText;
+    btn.innerText = '{{ t("copied") }}';
+    btn.style.background = 'var(--accent)';
+    setTimeout(() => {
+      btn.innerText = originalText;
+      btn.style.background = btnId === 'copy-uninstall-btn' ? 'var(--danger)' : '';
+    }, 2000);
+  };
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(onSuccess);
+  } else {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      onSuccess();
+    } catch (err) {
+      alert("Failed to copy. Please copy manually.");
+    }
+    document.body.removeChild(textArea);
+  }
+}
+</script>
+{% endblock %}

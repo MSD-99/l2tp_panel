@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block page_title %}{{ t('new_user_title') }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 420px;">
+  {% for err in errors %}
+  <div class="error-banner">{{ err }}</div>
+  {% endfor %}
+  <form method="post" action="/users/new">
+    <label for="username">{{ t('col_username') }}</label>
+    <input type="text" id="username" name="username" required>
+
+    <label for="password">{{ t('password_hint') }}</label>
+    <input type="password" id="password" name="password" required>
+
+    <label for="role">{{ t('role_hint') }}</label>
+    <select id="role" name="role" required>
+      <option value="viewer">{{ t('role_viewer') }}</option>
+      <option value="admin">{{ t('role_admin') }}</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary full-btn">{{ t('create_user_submit') }}</button>
+  </form>
+</div>
+{% endblock %}

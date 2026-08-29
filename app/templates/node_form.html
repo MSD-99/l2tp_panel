@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block page_title %}{% if node %}{{ t('edit_node_title') }}{% else %}{{ t('new_node_title') }}{% endif %}{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 480px;">
+  {% for err in errors %}
+  <div class="error-banner">{{ err }}</div>
+  {% endfor %}
+
+  <form method="post" action="{% if node %}/nodes/{{ node.id }}/edit{% else %}/nodes/new{% endif %}">
+
+    {# ── Label ── #}
+    <label for="label">{{ t('node_label_hint') }}</label>
+    <input type="text" id="label" name="label" required
+           placeholder="{{ t('node_label_placeholder') }}"
+           value="{% if node %}{{ node.label }}{% endif %}">
+
+    {# ── Router IP (public) ── #}
+    <div class="form-group" style="margin-top: 14px;">
+      <label for="public_ip">{{ t('node_router_ip_label') }}</label>
+      <input type="text" id="public_ip" name="public_ip" required
+             placeholder="188.121.109.115"
+             value="{% if node %}{{ node.public_ip or '' }}{% endif %}"
+             style="direction: ltr;">
+      <small style="color:var(--text-muted); display:block; margin-top:4px;">
+        {{ t('node_router_ip_hint') }}
+      </small>
+    </div>
+
+    {# ── Subnet toggle ── #}
+    <div class="form-group" style="margin-top: 14px;">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none;">
+        <input type="checkbox" id="has_subnet" name="has_subnet" value="1"
+               {% if node and node.subnet_cidr %}checked{% endif %}
+               onchange="document.getElementById('subnet_section').style.display = this.checked ? 'block' : 'none';"
+               style="width:18px; height:18px; accent-color: var(--accent);">
+        <span>{{ t('has_subnet_label') }}</span>
+      </label>
+    </div>
+
+    {# ── Subnet field (hidden by default) ── #}
+    <div id="subnet_section" class="form-group"
+         style="display:{% if node and node.subnet_cidr %}block{% else %}none{% endif %}; margin-top:8px; padding:12px; border:1px solid var(--border); border-radius:8px; background:rgba(255,255,255,0.03);">
+      <label for="subnet_cidr">{{ t('subnet_cidr_label') }}</label>
+      <input type="text" id="subnet_cidr" name="subnet_cidr"
+             placeholder="188.121.109.0/24"
+             value="{% if node %}{{ node.subnet_cidr or '' }}{% endif %}"
+             style="direction: ltr;">
+      <small style="color:var(--text-muted); display:block; margin-top:4px;">
+        {{ t('subnet_cidr_hint') }}
+      </small>
+    </div>
+
+    <button type="submit" class="btn btn-primary full-btn" style="margin-top:18px;">
+      {% if node %}{{ t('save_changes') }}{% else %}{{ t('create_node_submit') }}{% endif %}
+    </button>
+  </form>
+</div>
+
+{% if node %}
+<div class="card" style="max-width: 480px; margin-top: 20px; border-color: var(--danger);">
+  <h4 style="color: var(--danger); margin-top: 0; margin-bottom: 8px;">{{ t('danger_zone', default='Danger Zone') }}</h4>
+  <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+    {{ t('rotate_secrets_warning', default='Rotating secrets will immediately disconnect this node until you run the new setup script on it.') }}
+  </p>
+  <form method="post" action="/nodes/{{ node.id }}/rotate-secrets" onsubmit="return confirm('{{ t('confirm_rotate_secrets', default='Are you sure you want to rotate secrets? This will disconnect the node.') }}');">
+    <button type="submit" class="btn btn-danger full-btn">{{ t('rotate_secrets') }}</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="{{ current_lang() }}" dir="{{ 'rtl' if current_lang() == 'fa' else 'ltr' }}">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ t('login_title') }} | {{ t('login_eyebrow') }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="lang-switch">
+    <a href="?lang=fa" class="{{ 'active' if current_lang() == 'fa' else '' }}">FA</a>
+    <span>/</span>
+    <a href="?lang=en" class="{{ 'active' if current_lang() == 'en' else '' }}">EN</a>
+  </div>
+
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <p class="auth-eyebrow">{{ t('login_eyebrow') }}</p>
+      <h1 class="auth-title">{{ t('login_title') }}</h1>
+
+      {% if show_ssl_warning() %}
+      <div class="ssl-warning">{{ t('ssl_warning_banner') }}</div>
+      {% endif %}
+
+      {% if error_key %}
+        <div class="error-banner">{{ t(error_key) }}</div>
+      {% endif %}
+
+      <form method="post" action="{{ request.url.path }}">
+        <label for="username">{{ t('login_username') }}</label>
+        <input type="text" id="username" name="username" autocomplete="username" required>
+
+        <label for="password">{{ t('login_password') }}</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
+
+        <button type="submit" class="btn btn-primary full-btn">{{ t('login_submit') }}</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

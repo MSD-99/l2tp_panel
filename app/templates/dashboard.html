@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+{% block page_title %}{{ t('dashboard_title') }}{% endblock %}
+{% block content %}
+
+{% if dev_mode %}
+<div class="error-banner" style="background: var(--warn-dim); border-color: var(--warn); color:#ffe9c2;">
+  {{ t('dev_mode_banner') }}
+</div>
+{% endif %}
+
+<!-- System Resources Gauges -->
+<div class="card" style="margin-bottom: 24px;">
+  <h3 style="margin-top:0; margin-bottom: 24px;">{{ t('system_resources') | default('System Resources') }}</h3>
+  <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 20px;">
+    <!-- CPU Gauge -->
+    <div style="width: 160px; height: 90px; position: relative;">
+      <svg viewBox="0 0 100 55" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: visible;">
+        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" stroke-linecap="round"/>
+        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="125.6" style="transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s;" id="cpu-arc"/>
+      </svg>
+      <div style="position: absolute; bottom: 0; left: 0; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; padding-bottom: 2px;">
+        <span style="font-size: 22px; color: var(--text-light); font-weight: 800; font-family: var(--font-mono); line-height: 1;" id="cpu-text">--%</span>
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 1px; margin-top: 6px;">CPU</span>
+      </div>
+    </div>
+    <!-- RAM Gauge -->
+    <div style="width: 160px; height: 90px; position: relative;">
+      <svg viewBox="0 0 100 55" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: visible;">
+        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" stroke-linecap="round"/>
+        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#a371f7" stroke-width="10" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="125.6" style="transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s;" id="ram-arc"/>
+      </svg>
+      <div style="position: absolute; bottom: 0; left: 0; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; padding-bottom: 2px;">
+        <span style="font-size: 22px; color: var(--text-light); font-weight: 800; font-family: var(--font-mono); line-height: 1;" id="ram-text">--%</span>
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 1px; margin-top: 6px;">RAM</span>
+      </div>
+    </div>
+    <!-- Disk Gauge -->
+    <div style="width: 160px; height: 90px; position: relative;">
+      <svg viewBox="0 0 100 55" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: visible;">
+        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" stroke-linecap="round"/>
+        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#f2b84b" stroke-width="10" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="125.6" style="transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s;" id="disk-arc"/>
+      </svg>
+      <div style="position: absolute; bottom: 0; left: 0; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; padding-bottom: 2px;">
+        <span style="font-size: 22px; color: var(--text-light); font-weight: 800; font-family: var(--font-mono); line-height: 1;" id="disk-text">--%</span>
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 1px; margin-top: 6px;">DISK</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+    <h3 style="margin-top:0;">{{ t('node_status_title') }}</h3>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="display: flex; flex-direction: column; align-items: flex-end;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <label for="refresh-interval" style="font-size: 12px; color: var(--text-muted); white-space: nowrap;">{{ t('auto_refresh_label') }}</label>
+          <select id="refresh-interval" class="btn btn-ghost" style="font-size:12px; padding: 4px 10px; min-height: 28px; line-height: 1;" onchange="applyRefreshInterval(true)">
+            <option value="0">{{ t('refresh_off') }}</option>
+            <option value="5">{{ t('refresh_5s') }}</option>
+            <option value="15">{{ t('refresh_15s') }}</option>
+            <option value="30">{{ t('refresh_30s') }}</option>
+          </select>
+          <button id="manual-refresh-btn" class="btn btn-ghost" style="padding: 4px 8px; min-height: 28px; line-height: 1;" onclick="manualRefresh()" title="Reload Now">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+          </button>
+        </div>
+        <div style="width: 100%; height: 2px; background: var(--bg-darker); margin-top: 4px; border-radius: 2px; overflow: hidden; display: none;" id="progress-container">
+          <div id="refresh-progress-bar" style="height: 100%; width: 0%; background: var(--accent); transition: width 0.1s linear;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <table id="nodes-table">
+    <thead><tr><th>{{ t('col_label') }}</th><th>{{ t('col_router_ip') }}</th><th>{{ t('col_subnet') }}</th><th>{{ t('col_status') }}</th><th>{{ t('col_log') }}</th></tr></thead>
+    <tbody>
+      {% for item in node_status %}
+      <tr>
+        <td class="mono">{{ item.node.label }}</td>
+        <td class="mono">{{ item.node.public_ip or '-' }}</td>
+        <td class="mono">{{ item.node.subnet_cidr or '-' }}</td>
+        <td>
+          {% if item.online %}
+          <span class="status-dot online"></span> <span style="color: var(--accent);">{{ t('status_online') }}</span>
+          {% else %}
+          <span class="status-dot offline"></span> <span style="color: var(--danger);">{{ t('status_offline') }}</span>
+          {% endif %}
+        </td>
+        <td>
+          <button class="btn btn-ghost" style="font-size:12px;" onclick="openNodeLog({{ item.node.id }}, '{{ item.node.label }}')">{{ t('view_log') }}</button>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" style="color:var(--text-muted);">{{ t('no_nodes') }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+    <h3 style="margin:0;">{{ t('active_routes_title') }}</h3>
+  </div>
+  {% for c in connections %}
+  {% set src = nodes_by_id.get(c.source_node_id) %}
+  {% set dst = nodes_by_id.get(c.target_node_id) %}
+  <div class="route-rail" style="margin-bottom:12px; display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-darker); border-radius: 8px;">
+    <span class="route-node" style="flex: 1; text-align: right; padding-right: 15px;">{{ src.label if src else '?' }}</span>
+    
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 2;">
+      <span style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">{{ c.label }}</span>
+      <div style="display: flex; align-items: center; width: 100%; position: relative;">
+        {% if c.mode.value == 'two_way' %}
+        <!-- Two way arrow -->
+        <svg width="100%" height="12" preserveAspectRatio="none" viewBox="0 0 100 12">
+          <line x1="10" y1="6" x2="90" y2="6" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4,2"/>
+          <polygon points="10,6 16,2 16,10" fill="var(--accent)"/>
+          <polygon points="90,6 84,2 84,10" fill="var(--accent)"/>
+        </svg>
+        {% else %}
+        {% if current_lang() == 'fa' %}
+        <!-- RTL One way arrow (Points left, flows right-to-left) -->
+        <svg width="100%" height="12" preserveAspectRatio="none" viewBox="0 0 100 12">
+          <line x1="10" y1="6" x2="100" y2="6" stroke="var(--warn)" stroke-width="2" stroke-dasharray="4,2"/>
+          <polygon points="10,6 16,2 16,10" fill="var(--warn)"/>
+        </svg>
+        {% else %}
+        <!-- LTR One way arrow (Points right, flows left-to-right) -->
+        <svg width="100%" height="12" preserveAspectRatio="none" viewBox="0 0 100 12">
+          <line x1="0" y1="6" x2="90" y2="6" stroke="var(--warn)" stroke-width="2" stroke-dasharray="4,2"/>
+          <polygon points="90,6 84,2 84,10" fill="var(--warn)"/>
+        </svg>
+        {% endif %}
+        {% endif %}
+      </div>
+    </div>
+    
+    <span class="route-node" style="flex: 1; text-align: left; padding-left: 15px;">{{ dst.label if dst else '?' }}</span>
+  </div>
+  {% else %}
+  <p style="color:var(--text-muted);">{{ t('no_routes') }}</p>
+  {% endfor %}
+</div>
+
+<!-- Modal for Node Logs -->
+<div id="node-log-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; padding: 20px;">
+  <div class="card" style="width:100%; max-width:800px; height:80vh; display:flex; flex-direction:column; padding:0; overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-bottom:1px solid var(--border);">
+      <h3 style="margin:0;" id="node-log-title">Logs</h3>
+      <button class="btn btn-ghost" onclick="closeNodeLog()">{{ t('close') }}</button>
+    </div>
+    <div id="node-log-terminal" style="
+      background: #0a0e14; font-family: var(--font-mono); font-size: 12px; line-height: 1.6;
+      padding: 16px; flex: 1; overflow-y: auto; color: #c5cdd9; white-space: pre-wrap;
+      word-break: break-all; direction: ltr; text-align: left;
+    ">
+    </div>
+  </div>
+</div>
+
+<script>
+  let refreshIntervalId = null;
+  let progressIntervalId = null;
+  let targetTime = 0;
+  let currentIntervalValue = 0;
+  
+  const selectInterval = document.getElementById('refresh-interval');
+  const progressBar = document.getElementById('refresh-progress-bar');
+  const progressContainer = document.getElementById('progress-container');
+  const manualBtn = document.getElementById('manual-refresh-btn');
+  
+  function applyRefreshInterval(reset = false) {
+    if (refreshIntervalId) clearInterval(refreshIntervalId);
+    if (progressIntervalId) clearInterval(progressIntervalId);
+    
+    const val = parseInt(selectInterval.value);
+    localStorage.setItem('dashboard_refresh_interval', val);
+    currentIntervalValue = val;
+    
+    if (val > 0) {
+      progressContainer.style.display = 'block';
+      if (reset || targetTime <= Date.now()) {
+        targetTime = Date.now() + (val * 1000);
+      }
+      
+      progressIntervalId = setInterval(updateProgress, 50);
+      refreshIntervalId = setInterval(() => {
+        fetchDashboard();
+        targetTime = Date.now() + (val * 1000);
+      }, val * 1000);
+    } else {
+      progressContainer.style.display = 'none';
+      progressBar.style.width = '0%';
+    }
+  }
+
+  function updateProgress() {
+    if (currentIntervalValue <= 0) return;
+    const now = Date.now();
+    const remaining = targetTime - now;
+    const total = currentIntervalValue * 1000;
+    
+    if (remaining <= 0) {
+      progressBar.style.width = '100%';
+    } else {
+      const percent = ((total - remaining) / total) * 100;
+      progressBar.style.width = percent + '%';
+    }
+  }
+
+  function manualRefresh() {
+    manualBtn.style.opacity = '0.5';
+    fetchDashboard().finally(() => {
+      manualBtn.style.opacity = '1';
+      applyRefreshInterval(true);
+    });
+  }
+
+  function fetchDashboard() {
+    // Only refresh if modal is not open
+    if (document.getElementById('node-log-modal').style.display !== 'none') return Promise.resolve();
+
+    return fetch(window.location.href)
+      .then(r => r.text())
+      .then(html => {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        // Update nodes table
+        const currentTable = document.querySelector('#nodes-table tbody');
+        const newTable = doc.querySelector('#nodes-table tbody');
+        if (currentTable && newTable) currentTable.innerHTML = newTable.innerHTML;
+      })
+      .catch(e => console.error("Auto-refresh failed", e));
+  }
+
+  // Load saved interval
+  const savedInterval = localStorage.getItem('dashboard_refresh_interval');
+  if (savedInterval) {
+    selectInterval.value = savedInterval;
+  }
+  applyRefreshInterval();
+
+  // Metrics Gauges Logic
+  function updateGauges() {
+    fetch('/api/system/metrics')
+      .then(r => r.json())
+      .then(data => {
+        function setGauge(id, val, baseColor) {
+          const arc = document.getElementById(id + '-arc');
+          const txt = document.getElementById(id + '-text');
+          if(!arc || !txt) return;
+          
+          val = Math.max(0, Math.min(100, val));
+          const offset = 125.6 * (1 - val / 100);
+          arc.style.strokeDashoffset = offset;
+          txt.textContent = val.toFixed(1) + '%';
+          
+          // Color transition & glow based on value
+          let color = baseColor;
+          if (val > 90) color = 'var(--danger)';
+          else if (val > 75) color = 'var(--warn)';
+          
+          arc.style.stroke = color;
+          arc.style.filter = `drop-shadow(0 0 6px ${color}80)`;
+        }
+        
+        setGauge('cpu', data.cpu, 'var(--accent)');
+        setGauge('ram', data.ram, '#a371f7');
+        setGauge('disk', data.disk, '#f2b84b');
+      })
+      .catch(e => console.error("Metrics fetch failed", e));
+  }
+
+  // Fetch metrics immediately, then every 2 seconds
+  updateGauges();
+  setInterval(updateGauges, 2000);
+
+
+  // Node Log Modal Logic
+  let logEventSource = null;
+
+  function openNodeLog(nodeId, nodeLabel) {
+    document.getElementById('node-log-title').innerText = "Logs: " + nodeLabel;
+    document.getElementById('node-log-terminal').innerHTML = "Connecting...\n";
+    document.getElementById('node-log-modal').style.display = 'flex';
+    
+    if (logEventSource) logEventSource.close();
+    
+    logEventSource = new EventSource('/logs/node/' + nodeId + '/stream');
+    logEventSource.onopen = function() {
+      const term = document.getElementById('node-log-terminal');
+      if (term.innerHTML.includes("Connecting...")) {
+        term.innerHTML = "<span style='color:var(--accent);'>Connected. Waiting for new log entries...</span>\n\n";
+      }
+    };
+    logEventSource.addEventListener('log', function(e) {
+      const term = document.getElementById('node-log-terminal');
+      const span = document.createElement('span');
+      span.style.display = 'block';
+      let html = e.data.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      
+      // Highlight tags like xl2tpd, pppd, charon
+      html = html.replace(/\b(xl2tpd|pppd|charon|ipsec)\b/g, m => {
+        let color = '#f2b84b';
+        if (m === 'xl2tpd') color = '#45d8c4';
+        if (m === 'pppd') color = '#a371f7';
+        if (m === 'charon') color = '#e5534b';
+        return `<span style="color: ${color}; font-weight: bold;">${m}</span>`;
+      });
+
+      span.innerHTML = html;
+      term.appendChild(span);
+      term.scrollTop = term.scrollHeight;
+    });
+
+    logEventSource.onerror = function() {
+      const term = document.getElementById('node-log-terminal');
+      term.innerHTML += "<span style='color:red;'>Connection lost.</span>\n";
+      logEventSource.close();
+    };
+  }
+
+  function closeNodeLog() {
+    document.getElementById('node-log-modal').style.display = 'none';
+    if (logEventSource) {
+      logEventSource.close();
+      logEventSource = null;
+    }
+  }
+</script>
+{% endblock %}

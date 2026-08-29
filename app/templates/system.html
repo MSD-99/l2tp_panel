@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block page_title %}{{ t('system_title') }}{% endblock %}
+{% block content %}
+
+{% if message %}
+<div class="card" style="border-color: var(--accent);"><p style="margin:0;">{{ message }}</p></div>
+{% endif %}
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h3 style="margin:0 0 4px;">{{ t('autostart_title') }}</h3>
+      <span class="mono" style="font-size:13px; color:var(--text-muted);">{{ t('service_status_label') }}: {{ status }}</span>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <form method="post" action="/system/service/enable"><button class="btn btn-primary" type="submit">{{ t('enable_autostart') }}</button></form>
+      <form method="post" action="/system/service/disable"><button class="btn btn-ghost" type="submit">{{ t('disable') }}</button></form>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">{{ t('rebuild_title') }}</h3>
+  <p style="color:var(--text-muted); font-size:14px;">{{ t('rebuild_desc') }}</p>
+  <form method="post" action="/system/rebuild-now">
+    <button type="submit" class="btn btn-primary">{{ t('rebuild_now') }}</button>
+  </form>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">{{ t('service_preview_title') }}</h3>
+  <pre class="mono" style="background:var(--surface-2); padding:14px; border-radius:6px; overflow-x:auto; font-size:12px;">{{ service_preview }}</pre>
+</div>
+{% endblock %}

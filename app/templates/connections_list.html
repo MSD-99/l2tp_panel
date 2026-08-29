@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block page_title %}{{ t('connections_title') }}{% endblock %}
+{% block content %}
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+    <span class="mono" style="color:var(--text-muted); font-size:13px;">{{ connections|length }} {{ t('connections_count') }}</span>
+    {% if user.role.value == 'admin' %}
+    <a href="/connections/new" class="btn btn-primary">{{ t('add_connection') }}</a>
+    {% endif %}
+  </div>
+
+  {% for c in connections %}
+  {% set src = nodes_by_id.get(c.source_node_id) %}
+  {% set dst = nodes_by_id.get(c.target_node_id) %}
+  <div style="padding:12px 0; border-bottom:1px solid var(--border);">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div class="route-rail">
+        {% set oneway_cls = 'one-way arrow-left flow-left' if current_lang() == 'fa' else 'one-way arrow-right flow-right' %}
+        <span class="route-node">{{ src.label if src else '?' }}</span>
+        <span class="route-line {{ 'two-way arrow-left flow-left' if c.mode.value == 'two_way' else oneway_cls }}"></span>
+        <span class="route-port">{{ t('subnet_route_label') }}</span>
+        <span class="route-line {{ 'two-way arrow-right flow-right' if c.mode.value == 'two_way' else oneway_cls }}"></span>
+        <span class="route-node">{{ dst.label if dst else '?' }}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="mono" style="font-size:12px; color:var(--text-muted);">{{ c.label }} · {{ c.mode.value }}</span>
+        {% if user.role.value == 'admin' %}
+        <form method="post" action="/connections/{{ c.id }}/delete"
+              onsubmit="return confirm('{{ t('confirm_delete_connection') }}');">
+          <button type="submit" class="btn btn-danger" style="font-size:12px;">{{ t('delete') }}</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <p style="color:var(--text-muted);">{{ t('no_routes') }}</p>
+  {% endfor %}
+</div>
+{% endblock %}

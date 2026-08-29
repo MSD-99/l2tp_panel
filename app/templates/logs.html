@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block page_title %}{{ t('logs_title') }}{% endblock %}
+{% block content %}
+
+<div class="card" style="padding:0; overflow:hidden;">
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-bottom:1px solid var(--border);">
+    <h3 style="margin:0;">{{ t('logs_title') }}</h3>
+    <div style="display:flex; gap:8px;">
+      <select id="log-filter" class="btn btn-ghost" style="font-size:12px; padding: 4px 10px;" onchange="applyFilter()">
+        <option value="ALL">{{ t('logs_all') }}</option>
+        <option value="INFO">INFO</option>
+        <option value="ERROR">ERROR</option>
+        <option value="WARNING">WARNING / WARN</option>
+        <option value="DEBUG">DEBUG</option>
+        <option value="TRACE">TRACE</option>
+      </select>
+      <button id="btn-pause" class="btn btn-ghost" style="font-size:12px;" onclick="togglePause()">{{ t('logs_pause') }}</button>
+      <button class="btn btn-ghost" style="font-size:12px;" onclick="clearLog()">{{ t('logs_clear') }}</button>
+    </div>
+  </div>
+  <div id="log-terminal" style="
+    background: #0a0e14;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 16px;
+    height: 70vh;
+    overflow-y: auto;
+    color: #c5cdd9;
+    white-space: pre-wrap;
+    word-break: break-all;
+    direction: ltr;
+    text-align: left;
+  ">
+  </div>
+</div>
+
+<style>
+  .log-line { display: block; }
+  .log-line:hover { background: rgba(69,216,196,0.06); }
+  #log-terminal .log-new { animation: log-flash 0.4s ease-out; }
+  @keyframes log-flash {
+    from { background: rgba(69,216,196,0.12); }
+    to   { background: transparent; }
+  }
+</style>
+
+<script>
+  const terminal = document.getElementById('log-terminal');
+  const btnPause = document.getElementById('btn-pause');
+  let paused = false;
+  let buffer = [];
+  const MAX_LINES = 2000;
+  let currentFilter = 'ALL';
+
+  function extractLevel(text) {
+    const match = text.match(/\b(INFO|TRACE|DEBUG|ERROR|WARNING|WARN)\b/);
+    if (match) {
+      const m = match[1];
+      return (m === 'WARN') ? 'WARNING' : m;
+    }
+    return 'NONE';
+  }
+
+  function applyFilter() {
+    currentFilter = document.getElementById('log-filter').value;
+    const lines = terminal.getElementsByClassName('log-line');
+    for (let i = 0; i < lines.length; i++) {
+      const level = lines[i].getAttribute('data-level');
+      if (currentFilter === 'ALL' || level === currentFilter) {
+        lines[i].style.display = 'block';
+      } else {
+        lines[i].style.display = 'none';
+      }
+    }
+    scrollBottom();
+  }
+
+  function togglePause() {
+    paused = !paused;
+    btnPause.textContent = paused ? '{{ t("logs_resume") }}' : '{{ t("logs_pause") }}';
+    if (!paused) {
+      buffer.forEach(line => appendLine(line));
+      buffer = [];
+      scrollBottom();
+    }
+  }
+
+  function clearLog() {
+    terminal.innerHTML = '';
+  }
+
+  function appendLine(text) {
+    const span = document.createElement('span');
+    span.className = 'log-line log-new';
+    
+    const level = extractLevel(text);
+    span.setAttribute('data-level', level);
+    
+    if (currentFilter !== 'ALL' && level !== currentFilter) {
+      span.style.display = 'none';
+    }
+
+    let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    html = html.replace(/\b(INFO|TRACE|DEBUG|ERROR|WARNING|WARN)\b/g, m => {
+      let color = '#c5cdd9';
+      if (m === 'INFO') color = '#45d8c4'; // accent
+      else if (m === 'ERROR') color = '#e5534b'; // danger
+      else if (m === 'WARNING' || m === 'WARN') color = '#f2b84b'; // warn
+      else if (m === 'DEBUG') color = '#8b94a7'; // muted
+      else if (m === 'TRACE') color = '#a371f7'; // purple
+      return `<span style="color: ${color}; font-weight: bold;">${m}</span>`;
+    });
+    
+    span.innerHTML = html;
+    terminal.appendChild(span);
+
+    // Trim old lines
+    while (terminal.children.length > MAX_LINES) {
+      terminal.removeChild(terminal.firstChild);
+    }
+  }
+
+  function scrollBottom() {
+    terminal.scrollTop = terminal.scrollHeight;
+  }
+
+  // Handle initial lines safely via JSON injection
+  const initialLines = {{ initial_lines | tojson }};
+  initialLines.forEach(line => {
+    appendLine(line);
+    // Remove animation class for initial lines
+    terminal.lastChild.classList.remove('log-new');
+  });
+
+  // SSE connection
+  const evtSource = new EventSource('/logs/stream');
+  evtSource.addEventListener('log', function(e) {
+    if (paused) {
+      buffer.push(e.data);
+      return;
+    }
+    appendLine(e.data);
+    scrollBottom();
+  });
+
+  evtSource.onerror = function() {
+    appendLine('--- connection lost, retrying... ---');
+  };
+
+  // Auto-scroll to bottom on load
+  scrollBottom();
+</script>
+
+{% endblock %}
