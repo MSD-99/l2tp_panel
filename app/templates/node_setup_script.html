@@ -19,7 +19,12 @@
         </div>
       </div>
 
-      <div style="position: relative; display: flex; flex-direction: column; height: 400px;">
+      <div style="margin-top: 16px; margin-bottom: 8px;">
+        <button id="tab-linux" class="btn btn-primary" style="padding: 6px 16px; font-size: 13px;" onclick="switchTab('linux')">Linux (Ubuntu/Debian)</button>
+        <button id="tab-mikrotik" class="btn btn-ghost" style="padding: 6px 16px; font-size: 13px; margin-left: 8px;" onclick="switchTab('mikrotik')">MikroTik (RouterOS)</button>
+      </div>
+
+      <div id="container-linux" style="position: relative; display: flex; flex-direction: column; height: 400px;">
         <button id="copy-btn" class="btn btn-primary"
                 style="position:absolute; top:8px; right:8px; font-size:12px; z-index:2; padding: 6px 14px;"
                 onclick="copyScript('script-content', 'copy-btn')">
@@ -31,6 +36,20 @@
           overflow-y: auto; direction: ltr; text-align: left;
           white-space: pre; border: 1px solid var(--border); margin: 0; flex: 1;
         ">{{ script }}</pre>
+      </div>
+
+      <div id="container-mikrotik" style="position: relative; display: none; flex-direction: column; height: 400px;">
+        <button id="copy-mikrotik-btn" class="btn btn-primary"
+                style="position:absolute; top:8px; right:8px; font-size:12px; z-index:2; padding: 6px 14px;"
+                onclick="copyScript('mikrotik-script-content', 'copy-mikrotik-btn')">
+          {{ t('copy_script') }}
+        </button>
+        <pre id="mikrotik-script-content" style="
+          background: #0a0e14; color: #c5cdd9; font-family: var(--font-mono); font-size: 12px;
+          line-height: 1.6; padding: 16px; border-radius: 8px; overflow-x: auto;
+          overflow-y: auto; direction: ltr; text-align: left;
+          white-space: pre; border: 1px solid var(--border); margin: 0; flex: 1;
+        ">{{ mikrotik_script }}</pre>
       </div>
     </div>
 
@@ -70,6 +89,25 @@
 </div>
 
 <script>
+function switchTab(tab) {
+  const btnLinux = document.getElementById('tab-linux');
+  const btnMikrotik = document.getElementById('tab-mikrotik');
+  const contLinux = document.getElementById('container-linux');
+  const contMikrotik = document.getElementById('container-mikrotik');
+
+  if (tab === 'linux') {
+    btnLinux.className = 'btn btn-primary';
+    btnMikrotik.className = 'btn btn-ghost';
+    contLinux.style.display = 'flex';
+    contMikrotik.style.display = 'none';
+  } else {
+    btnLinux.className = 'btn btn-ghost';
+    btnMikrotik.className = 'btn btn-primary';
+    contLinux.style.display = 'none';
+    contMikrotik.style.display = 'flex';
+  }
+}
+
 function copyScript(contentId, btnId) {
   const text = document.getElementById(contentId).innerText;
   

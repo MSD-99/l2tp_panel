@@ -192,10 +192,16 @@ def setup_script_page(node_id: int, request: Request, db: Session = Depends(get_
         ppp_password=ppp_password,
     )
     uninstall_script = _generate_uninstall_script(node.label)
+    mikrotik_script = _generate_mikrotik_script(
+        central_ip=central_ip,
+        node_label=node.label,
+        psk=psk,
+        ppp_password=ppp_password,
+    )
 
     return templates.TemplateResponse(
         "node_setup_script.html",
-        {"request": request, "user": user, "active": "nodes", "node": node, "script": script, "uninstall_script": uninstall_script},
+        {"request": request, "user": user, "active": "nodes", "node": node, "script": script, "uninstall_script": uninstall_script, "mikrotik_script": mikrotik_script},
     )
 
 
@@ -404,4 +410,24 @@ systemctl disable strongswan-starter 2>/dev/null || true
 echo "============================================"
 echo "  ✅ Node {node_label} has been successfully uninstalled."
 echo "============================================"
+'''
+
+
+def _generate_mikrotik_script(central_ip: str, node_label: str, psk: str, ppp_password: str) -> str:
+    return f'''# ============================================================
+#  MikroTik RouterOS Setup Script for node: {node_label}
+#  Central server: {central_ip}
+#  Run this in the MikroTik Terminal
+# ============================================================
+
+/ppp profile
+add name=l2tp_hub_profile use-encryption=yes use-mpls=default use-upnp=no
+
+/interface l2tp-client
+add allow=mschap2 connect-to={central_ip} disabled=no \\
+    ipsec-secret="{psk}" name="l2tp_hub" password="{ppp_password}" \\
+    profile=l2tp_hub_profile use-ipsec=yes user="{node_label}"
+
+# Add a default route to the VPN (Optional - remove if not needed)
+# /ip route add dst-address=10.10.10.0/24 gateway=l2tp_hub
 '''
