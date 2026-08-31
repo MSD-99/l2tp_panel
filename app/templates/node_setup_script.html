@@ -7,7 +7,7 @@
   <div style="display: flex; gap: 24px; align-items: stretch;">
     <!-- Setup side -->
     <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
-      <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0; min-height: 170px;">
+      <div id="instruction-linux" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0; min-height: 170px; display: block;">
         <p style="color: var(--warn); margin:0 0 12px 0; font-size: 13px;">
           {{ t('setup_script_warning') }}
         </p>
@@ -16,6 +16,18 @@
           <div style="margin-bottom: 4px;">{{ t('setup_step_2') | safe }}</div>
           <div style="margin-bottom: 4px;">{{ t('setup_step_3') | safe }}</div>
           <div>{{ t('setup_step_4') | safe }}</div>
+        </div>
+      </div>
+
+      <div id="instruction-mikrotik" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0; min-height: 170px; display: none;">
+        <p style="color: var(--warn); margin:0 0 12px 0; font-size: 13px;">
+          توجه: این اسکریپت مخصوص سیستم‌عامل RouterOS میکروتیک است.
+        </p>
+        <div style="color: var(--text-muted); font-size: 13px; margin: 0; padding-right: 8px; line-height: 1.6;">
+          <div style="margin-bottom: 4px;">۱. نرم‌افزار <strong>Winbox</strong> را باز کرده و به میکروتیک خود متصل شوید.</div>
+          <div style="margin-bottom: 4px;">۲. از منوی سمت چپ روی گزینه <strong>New Terminal</strong> کلیک کنید.</div>
+          <div style="margin-bottom: 4px;">۳. کد زیر را به صورت کامل کپی کرده و در ترمینال میکروتیک Paste کنید (Enter بزنید).</div>
+          <div>۴. پس از چند ثانیه ارتباط برقرار شده و اینترفیس L2TP اضافه می‌شود.</div>
         </div>
       </div>
 
@@ -95,16 +107,23 @@ function switchTab(tab) {
   const contLinux = document.getElementById('container-linux');
   const contMikrotik = document.getElementById('container-mikrotik');
 
+  const instLinux = document.getElementById('instruction-linux');
+  const instMikrotik = document.getElementById('instruction-mikrotik');
+
   if (tab === 'linux') {
     btnLinux.className = 'btn btn-primary';
     btnMikrotik.className = 'btn btn-ghost';
     contLinux.style.display = 'flex';
     contMikrotik.style.display = 'none';
+    instLinux.style.display = 'block';
+    instMikrotik.style.display = 'none';
   } else {
     btnLinux.className = 'btn btn-ghost';
     btnMikrotik.className = 'btn btn-primary';
     contLinux.style.display = 'none';
     contMikrotik.style.display = 'flex';
+    instLinux.style.display = 'none';
+    instMikrotik.style.display = 'block';
   }
 }
 
