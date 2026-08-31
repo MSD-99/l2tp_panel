@@ -35,6 +35,14 @@ echo -e "${CYAN}║  Central Routing Manager — Installer             ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════════════╝${NC}"
 echo ""
 
+# ── 0.5. Server Environment Check ────────────────────────────────────
+echo -e "${CYAN}Where are you installing this server?${NC}"
+echo "1) Public VPS (Direct Internet IP - Recommended)"
+echo "2) Local Machine (Behind NAT / Home Modem)"
+read -p "Select [1 or 2, default 1]: " SERVER_TYPE
+SERVER_TYPE=${SERVER_TYPE:-1}
+echo ""
+
 # ── 1. System packages ──────────────────────────────────────────────
 info "Installing system packages (strongswan xl2tpd nginx ufw python3-venv)..."
 apt-get update -qq
@@ -157,6 +165,36 @@ echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║  Installation complete!                           ║${NC}"
 echo -e "${GREEN}║  Type 'l2tp' to open the management CLI.         ║${NC}"
-echo -e "${GREEN}║  Web Panel: http://\$(hostname -I | awk '{print \$1}'):8000/login ║${NC}"
+if [[ "$SERVER_TYPE" == "1" ]]; then
+    echo -e "${GREEN}║  Web Panel: http://\$(hostname -I | awk '{print \$1}'):8000/login ║${NC}"
+else
+    echo -e "${GREEN}║  Local Web Panel: http://\$(hostname -I | awk '{print \$1}'):8000/login ║${NC}"
+fi
 echo -e "${GREEN}╚══════════════════════════════════════════════════╝${NC}"
 echo ""
+
+if [[ "$SERVER_TYPE" == "2" ]]; then
+    echo -e "${YELLOW}================================================================${NC}"
+    echo -e "${YELLOW}⚠️  NAT / LOCAL NETWORK WARNING                                  ${NC}"
+    echo -e "${YELLOW}================================================================${NC}"
+    echo "You have installed this on a Local Machine."
+    echo "The IPsec VPN (for nodes to connect to this Hub) will NOT work over the"
+    echo "internet unless you configure Port Forwarding on your modem/router for:"
+    echo "   -> UDP Port 500   (IKE)"
+    echo "   -> UDP Port 4500  (NAT-T)"
+    echo "   -> TCP Port 8000  (Web Panel - optional)"
+    echo ""
+    read -p "Do you want to install Cloudflare Tunnel to easily expose the Web Panel to the internet without modem config? (y/N): " SETUP_CF
+    if [[ "$SETUP_CF" =~ ^[Yy]$ ]]; then
+        info "Installing cloudflared..."
+        wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+        dpkg -i cloudflared-linux-amd64.deb >/dev/null 2>&1 || true
+        rm -f cloudflared-linux-amd64.deb
+        ok "cloudflared installed."
+        echo ""
+        echo -e "${GREEN}To securely access your web panel from ANYWHERE in the world, just run:${NC}"
+        echo -e "${CYAN}cloudflared tunnel --url http://127.0.0.1:8000${NC}"
+        echo ""
+    fi
+fi
+
